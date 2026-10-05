@@ -2,10 +2,9 @@
 
 import clsx from "clsx";
 import { GripHorizontal, LayoutList, Maximize, Minus, Move, Plus, Spline } from "lucide-react";
-import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { ProjectPreview } from "@/components/previews";
-import { ContactLinks, ExperienceList, LayoutSwitcher, ProjectActions, SkillsGrid, StatusBadge, Tags } from "@/components/shared";
+import { ContactLinks, ExperienceList, ProjectActions, SkillsGrid, StatusBadge, Tags } from "@/components/shared";
 import { profile, projects } from "@/content/profile";
 import { bounds, createCameraStore, fitRect, type CameraStore, type Rect } from "./camera";
 
@@ -227,30 +226,9 @@ function Minimap({
 
 // ---------------------------------------------------------------------------
 
-const narrowQuery = "(max-width: 767px)";
-function useNarrow() {
-  return useSyncExternalStore(
-    (cb) => {
-      const mq = matchMedia(narrowQuery);
-      mq.addEventListener("change", cb);
-      return () => mq.removeEventListener("change", cb);
-    },
-    () => matchMedia(narrowQuery).matches,
-    () => false,
-  );
-}
-
-export function CanvasBoard() {
+export function CanvasBoard({ onList }: { onList: () => void }) {
   const cards = useMemo(() => buildCards(), []);
-  const narrow = useNarrow();
-  const [override, setOverride] = useState<"canvas" | "list" | null>(null);
-  const mode = override ?? (narrow ? "list" : "canvas");
-
-  return mode === "canvas" ? (
-    <Board cards={cards} onList={() => setOverride("list")} />
-  ) : (
-    <ListView cards={cards} onCanvas={() => setOverride("canvas")} />
-  );
+  return <Board cards={cards} onList={onList} />;
 }
 
 function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
@@ -394,7 +372,8 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
   // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).closest("input,textarea")) return;
+      // viewport.w is 0 while the board is hidden (phones), so leave keys alone there
+      if (!viewport.w || (e.target as HTMLElement).closest("input,textarea")) return;
       const cx = viewport.w / 2;
       const cy = viewport.h / 2;
       const cam = store.get();
@@ -527,40 +506,6 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
         <Minimap store={store} rects={rects} viewport={viewport} />
       </div>
 
-      <LayoutSwitcher current="canvas" />
-    </div>
-  );
-}
-
-function ListView({ cards, onCanvas }: { cards: CardDef[]; onCanvas: () => void }) {
-  const order = ["intro", ...projects.map((p) => p.slug), "experience", "skills"];
-  const sorted = order.map((id) => cards.find((c) => c.id === id)!).filter(Boolean);
-  return (
-    <div className="grain min-h-dvh">
-      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-border/60 bg-bg/80 px-4 py-3 backdrop-blur">
-        <Link href="/canvas" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-accent font-mono text-xs text-bg">sr</span>
-          srohrer.dev
-        </Link>
-        <button
-          onClick={onCanvas}
-          className="ml-auto flex items-center gap-1.5 rounded-xl border border-border bg-panel px-3 py-1.5 text-sm text-muted hover:text-text"
-        >
-          <Move className="size-4" /> Canvas view
-        </button>
-      </header>
-      <main className="mx-auto max-w-2xl space-y-5 px-4 py-6 pb-28">
-        {sorted.map((c) => (
-          <section key={c.id} className="overflow-hidden rounded-2xl border border-border bg-panel">
-            <div className="flex h-10 items-center gap-2 border-b border-border bg-panel-2/60 px-4">
-              <span className="font-mono text-xs text-muted">{c.title}</span>
-              <span className="ml-auto">{c.badge}</span>
-            </div>
-            <div className="p-5">{c.body}</div>
-          </section>
-        ))}
-      </main>
-      <LayoutSwitcher current="canvas" />
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import { ArrowUpRight, FileText, Mail } from "lucide-react";
-import Link from "next/link";
 import { experience, profile, skills, type Project } from "@/content/profile";
 
 export function GitHubIcon({ className }: { className?: string }) {
@@ -121,22 +120,5 @@ export function SkillsGrid() {
         </div>
       ))}
     </dl>
-  );
-}
-
-/** Temporary: lets you flip between the two candidate layouts. Delete once one is chosen. */
-export function LayoutSwitcher({ current }: { current: "showcase" | "canvas" }) {
-  const cls = (on: boolean) =>
-    clsx("rounded-full px-3 py-1 transition-colors", on ? "bg-text text-bg" : "text-muted hover:text-text");
-  return (
-    <div className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-panel/90 p-1 text-xs shadow-2xl backdrop-blur">
-      <span className="px-2 text-faint">Layout</span>
-      <Link href="/" className={cls(current === "showcase")}>
-        Showcase
-      </Link>
-      <Link href="/canvas" className={cls(current === "canvas")}>
-        Canvas
-      </Link>
-    </div>
   );
 }
