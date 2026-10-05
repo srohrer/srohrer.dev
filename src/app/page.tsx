@@ -1,69 +1,112 @@
-import Image from "next/image";
+import clsx from "clsx";
+import { Check } from "lucide-react";
+import { ProjectPreview } from "@/components/previews";
+import { ContactLinks, ExperienceList, LayoutSwitcher, ProjectActions, SkillsGrid, StatusBadge, Tags } from "@/components/shared";
+import { profile, projects } from "@/content/profile";
 
-export default function Home() {
+function Nav() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-bg/80 backdrop-blur">
+      <nav className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-5 text-sm">
+        <a href="#top" className="flex items-center gap-2 font-semibold tracking-tight">
+          <span className="flex size-7 items-center justify-center rounded-lg bg-accent font-mono text-xs text-bg">sr</span>
+          srohrer.dev
+        </a>
+        <div className="ml-auto flex items-center gap-5 text-muted">
+          <a href="#work" className="hover:text-text">Work</a>
+          <a href="#experience" className="hidden hover:text-text sm:inline">Experience</a>
+          <a href="#contact" className="hover:text-text">Contact</a>
+          <a href={profile.links.resume} target="_blank" rel="noreferrer" className="rounded-lg border border-border px-3 py-1.5 text-text hover:border-faint">
+            Résumé
+          </a>
+        </div>
+      </nav>
+    </header>
+  );
+}
+
+export default function Showcase() {
+  return (
+    <>
+      <Nav />
+      <main id="top" className="mx-auto max-w-6xl px-5">
+        <section className="relative py-20 sm:py-28">
+          <div className="pointer-events-none absolute inset-y-0 -left-5 -right-5 overflow-hidden">
+            <div className="absolute -top-40 -left-40 size-[520px] rounded-full bg-accent/10 blur-[120px]" />
+          </div>
+          <p className="relative font-mono text-sm text-accent">{profile.role}</p>
+          <h1 className="relative mt-3 text-5xl font-semibold tracking-tight sm:text-7xl">{profile.name}</h1>
+          <p className="relative mt-5 max-w-2xl text-xl text-balance text-text/90 sm:text-2xl">{profile.tagline}</p>
+          <p className="relative mt-5 max-w-2xl leading-relaxed text-muted">{profile.about}</p>
+          <p className="relative mt-4 text-sm text-faint">{profile.location}</p>
+          <ContactLinks className="relative mt-8" />
+        </section>
+
+        <section id="work" className="scroll-mt-20 pb-12">
+          <div className="mb-10 flex items-baseline justify-between border-b border-border pb-4">
+            <h2 className="text-sm font-semibold tracking-wider text-faint uppercase">Selected work</h2>
+            <span className="hidden text-xs text-faint sm:inline">previews are live: they animate as you scroll</span>
+          </div>
+
+          <div className="space-y-24">
+            {projects.map((p, i) => (
+              <article key={p.slug} className="grid items-center gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-12">
+                <div className={clsx("min-w-0", i % 2 === 1 && "lg:order-2")}>
+                  <ProjectPreview kind={p.preview} />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs text-faint">{String(i + 1).padStart(2, "0")}</span>
+                    <StatusBadge status={p.status} />
+                  </div>
+                  <h3 className="mt-3 text-3xl font-semibold tracking-tight">{p.name}</h3>
+                  <p className="mt-1 text-lg text-accent">{p.oneLiner}</p>
+                  <p className="mt-4 leading-relaxed text-muted">{p.description}</p>
+                  <ul className="mt-5 space-y-2 text-sm">
+                    {p.highlights.map((h) => (
+                      <li key={h} className="flex gap-2.5 text-text/85">
+                        <Check className="mt-0.5 size-4 shrink-0 text-green" />
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-5">
+                    <Tags tags={p.tags} />
+                  </div>
+                  <div className="mt-6">
+                    <ProjectActions project={p} />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="experience" className="grid scroll-mt-20 gap-12 border-t border-border py-20 lg:grid-cols-[1.25fr_1fr]">
+          <div>
+            <h2 className="mb-8 text-sm font-semibold tracking-wider text-faint uppercase">Experience</h2>
+            <ExperienceList />
+          </div>
+          <div>
+            <h2 className="mb-8 text-sm font-semibold tracking-wider text-faint uppercase">Toolbox</h2>
+            <SkillsGrid />
+          </div>
+        </section>
+
+        <section id="contact" className="scroll-mt-20 border-t border-border py-20 pb-32 text-center">
+          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Let&apos;s build something.</h2>
+          <p className="mx-auto mt-3 max-w-md text-muted">
+            I&apos;m looking for my next role at a product-minded team working with AI. The fastest way to reach me is
+            email.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
+          <a href={`mailto:${profile.email}`} className="mt-6 inline-block font-mono text-lg text-accent hover:underline">
+            {profile.email}
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <ContactLinks className="mt-8 justify-center" compact />
+          <p className="mt-16 text-xs text-faint">© {new Date().getFullYear()} {profile.name}</p>
+        </section>
       </main>
-    </div>
+      <LayoutSwitcher current="showcase" />
+    </>
   );
 }
