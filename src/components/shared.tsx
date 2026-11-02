@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ArrowUpRight, FileText, Mail } from "lucide-react";
+import { ArrowUpRight, FileText, Mail, Play } from "lucide-react";
 import { experience, profile, skills, type Project } from "@/content/profile";
 
 export function GitHubIcon({ className }: { className?: string }) {
@@ -39,6 +39,13 @@ export function ContactLinks({ className, compact }: { className?: string; compa
 }
 
 export function StatusBadge({ status }: { status: Project["status"] }) {
+  if (status === "video") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent">
+        <Play className="size-2.5 fill-current" /> Video walkthrough
+      </span>
+    );
+  }
   return status === "live" ? (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-green/10 px-2 py-0.5 text-[11px] font-medium text-green">
       <span className="size-1.5 rounded-full bg-green" /> Live
@@ -58,9 +65,9 @@ export function ProjectActions({ project }: { project: Project }) {
         <a href={project.url} target="_blank" rel="noreferrer" className={clsx(btn, "bg-text text-bg hover:bg-white")}>
           Open app <ArrowUpRight className="size-3.5" />
         </a>
-      ) : (
+      ) : project.status === "building" ? (
         <span className={clsx(btn, "cursor-default border border-border text-faint")}>Demo soon</span>
-      )}
+      ) : null}
       {project.repo && (
         <a href={project.repo} target="_blank" rel="noreferrer" className={clsx(btn, "border border-border text-muted hover:text-text")}>
           <GitHubIcon className="size-3.5" /> Source

@@ -19,6 +19,7 @@ interface CardDef {
   w: number;
   badge?: ReactNode;
   tone?: "default" | "note";
+  featured?: boolean;
   rotate?: number;
   body: ReactNode;
 }
@@ -26,7 +27,7 @@ interface CardDef {
 function ProjectBody({ p }: { p: (typeof projects)[number] }) {
   return (
     <div className="space-y-4">
-      <ProjectPreview kind={p.preview} className="h-[300px]" />
+      <ProjectPreview kind={p.preview} loomUrl={p.loomUrl} className={p.preview === "video" ? "w-full" : "h-[300px]"} />
       <div>
         <p className="text-lg font-medium text-accent">{p.oneLiner}</p>
         <p className="mt-2 text-sm leading-relaxed text-muted">{p.description}</p>
@@ -37,14 +38,14 @@ function ProjectBody({ p }: { p: (typeof projects)[number] }) {
   );
 }
 
+const FEATURED_SLOT: [number, number] = [640, -440];
 const PROJECT_SLOTS: [number, number][] = [
-  [640, -560],
-  [640, 220],
-  [-1280, 220],
   [-1280, -560],
+  [-1280, 220],
 ];
 
 function buildCards(): CardDef[] {
+  let slot = 0;
   return [
     {
       id: "intro",
@@ -63,15 +64,19 @@ function buildCards(): CardDef[] {
         </div>
       ),
     },
-    ...projects.map((p, i): CardDef => ({
-      id: p.slug,
-      title: p.name,
-      x: PROJECT_SLOTS[i % PROJECT_SLOTS.length][0],
-      y: PROJECT_SLOTS[i % PROJECT_SLOTS.length][1],
-      w: 640,
-      badge: <StatusBadge status={p.status} />,
-      body: <ProjectBody p={p} />,
-    })),
+    ...projects.map((p): CardDef => {
+      const [x, y] = p.featured ? FEATURED_SLOT : PROJECT_SLOTS[slot++ % PROJECT_SLOTS.length];
+      return {
+        id: p.slug,
+        title: p.name,
+        x,
+        y,
+        w: p.featured ? 1040 : 640,
+        featured: p.featured,
+        badge: <StatusBadge status={p.status} />,
+        body: <ProjectBody p={p} />,
+      };
+    }),
     {
       id: "experience",
       title: "experience.log",
@@ -135,7 +140,11 @@ const Card = memo(function Card({
       data-card
       className={clsx(
         "absolute rounded-2xl border shadow-2xl shadow-black/50",
-        note ? "border-amber/30 bg-[#2a2414] text-amber/90" : "border-border bg-panel",
+        note
+          ? "border-amber/30 bg-[#2a2414] text-amber/90"
+          : def.featured
+            ? "border-accent/60 bg-panel ring-1 ring-accent/20"
+            : "border-border bg-panel",
       )}
       style={{ left: pos.x, top: pos.y, width: def.w, rotate: def.rotate ? `${def.rotate}deg` : undefined }}
     >
@@ -296,11 +305,11 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
   // First fit once every card has been measured.
   useEffect(() => {
     if (!ready && rects.length === cards.length && viewport.w) {
-      const intro = rects.find((r) => r.id === "intro")!;
-      const all = fitRect(bounds(rects), viewport.w, viewport.h, 64, 1);
-      // Start a bit zoomed toward the intro so the name is readable, but show the layout.
-      const z = Math.min(1, Math.max(all.z, 0.5));
-      store.set({ z, x: viewport.w / 2 - (intro.x + intro.w / 2) * z, y: viewport.h / 2 - (intro.y + intro.h / 2) * z });
+      // Open on the intro and the featured project side by side.
+      const featured = projects.find((p) => p.featured);
+      const opening = bounds(rects.filter((r) => r.id === "intro" || r.id === featured?.slug));
+      const z = Math.max(fitRect(opening, viewport.w, viewport.h, 64, 1).z, 0.4);
+      store.set({ z, x: viewport.w / 2 - (opening.x + opening.w / 2) * z, y: viewport.h / 2 - (opening.y + opening.h / 2) * z });
       requestAnimationFrame(() => setReady(true));
     }
   }, [ready, rects, cards.length, viewport, store]);
@@ -447,15 +456,16 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
               const q = center(b);
               if (!p || !q) return null;
               const mx = (p.x + q.x) / 2;
+              const hero = projects.some((x) => x.featured && x.slug === b);
               return (
                 <path
                   key={`${a}-${b}`}
                   d={`M ${p.x} ${p.y} C ${mx} ${p.y}, ${mx} ${q.y}, ${q.x} ${q.y}`}
                   fill="none"
                   stroke="#ff7a59"
-                  strokeOpacity={0.35}
-                  strokeWidth={2}
-                  strokeDasharray="6 8"
+                  strokeOpacity={hero ? 0.8 : 0.35}
+                  strokeWidth={hero ? 3 : 2}
+                  strokeDasharray={hero ? undefined : "6 8"}
                 />
               );
             })}

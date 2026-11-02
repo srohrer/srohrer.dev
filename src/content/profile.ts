@@ -3,14 +3,18 @@
  * Items marked TODO are placeholders to replace as projects ship.
  */
 
-export type PreviewKind = "receipts" | "canvas" | "trace" | "video";
+export type PreviewKind = "receipts" | "trace" | "video";
 
 export interface Project {
   slug: string;
   name: string;
   oneLiner: string;
   description: string;
-  status: "live" | "building";
+  status: "live" | "building" | "video";
+  /** the centerpiece: shown first and largest in both layouts */
+  featured?: boolean;
+  /** paste the Loom share link here, e.g. https://www.loom.com/share/abc123 */
+  loomUrl?: string;
   tags: string[];
   preview: PreviewKind;
   /** TODO: real URLs once deployed / public */
@@ -36,6 +40,24 @@ export const profile = {
 
 export const projects: Project[] = [
   {
+    slug: "anki-bridge",
+    name: "Anki Bridge",
+    oneLiner: "Screenshots in, flashcards out.",
+    description:
+      "An MCP server that turns Japanese visual-novel screenshots into flashcards, checking each candidate against your existing collection to skip duplicates. It's read-only by design: every new card goes through a local approval UI.",
+    status: "video",
+    featured: true,
+    loomUrl: undefined, // TODO: Loom share link
+    tags: ["Python", "MCP", "Anki", "Vision"],
+    preview: "video",
+    // TODO: repo
+    highlights: [
+      "Dedupes against the existing collection before proposing cards",
+      "Per-card human approval — the model can't write directly",
+      "Versioned card formats so stale cards resurface for regeneration",
+    ],
+  },
+  {
     slug: "receipts",
     name: "Receipts",
     oneLiner: "Data analysis where every claim is checked.",
@@ -53,22 +75,6 @@ export const projects: Project[] = [
     ],
   },
   {
-    slug: "canvas",
-    name: "Agent Canvas",
-    oneLiner: "A whiteboard you can delegate to.",
-    description:
-      "An infinite canvas where an AI agent edits the board through tool calls — add, connect, align, group — instead of generating pictures. Every agent move is a normal, undoable edit you can inspect and revert.",
-    status: "building",
-    tags: ["React", "Canvas", "Tool calling", "CRDT"],
-    preview: "canvas",
-    // TODO: url / repo
-    highlights: [
-      "Agent operates on the scene graph, not pixels",
-      "Agent actions land in the same undo stack as yours",
-      "Streaming tool calls animate onto the board as they arrive",
-    ],
-  },
-  {
     slug: "trace",
     name: "Tracer",
     oneLiner: "See what your agent actually did.",
@@ -82,22 +88,6 @@ export const projects: Project[] = [
       "Waterfall of nested spans, streamed live",
       "Token and cost accounting per step",
       "Run-to-run diffing to catch regressions",
-    ],
-  },
-  {
-    slug: "anki-bridge",
-    name: "Anki Bridge",
-    oneLiner: "Screenshots in, flashcards out.",
-    description:
-      "An MCP server that turns Japanese visual-novel screenshots into flashcards, checking each candidate against your existing collection to skip duplicates. It's read-only by design: every new card goes through a local approval UI.",
-    status: "live",
-    tags: ["Python", "MCP", "Anki", "Vision"],
-    preview: "video",
-    // TODO: repo + Loom link
-    highlights: [
-      "Dedupes against the existing collection before proposing cards",
-      "Per-card human approval — the model can't write directly",
-      "Versioned card formats so stale cards resurface for regeneration",
     ],
   },
 ];

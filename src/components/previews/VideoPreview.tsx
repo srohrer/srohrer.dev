@@ -1,20 +1,25 @@
 import clsx from "clsx";
 import { ArrowRight, Play } from "lucide-react";
 
-/**
- * TODO: placeholder for the Anki Bridge Loom walkthrough. Replace with the Loom
- * embed (<iframe src="https://www.loom.com/embed/<id>">) once it's recorded.
- */
-export function VideoPreview({ className }: { className?: string }) {
+/** The Loom walkthrough, or a poster until `loomUrl` is set in content/profile.ts. */
+export function VideoPreview({ className, loomUrl }: { className?: string; loomUrl?: string }) {
+  if (loomUrl) {
+    const src = loomUrl.split("?")[0].replace("/share/", "/embed/");
+    return (
+      <div className={clsx("aspect-video overflow-hidden rounded-xl border border-border bg-black shadow-2xl shadow-black/40", className)}>
+        <iframe src={src} title="Anki Bridge walkthrough" allowFullScreen className="size-full" />
+      </div>
+    );
+  }
   return (
     <div
       className={clsx(
-        "group relative flex h-[340px] items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-[#1a1530] via-panel to-[#10201c] shadow-2xl shadow-black/40",
+        "group relative flex aspect-video items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-[#1a1530] via-panel to-[#10201c] shadow-2xl shadow-black/40",
         className,
       )}
     >
       {/* poster: a VN line becoming a flashcard */}
-      <div className="absolute inset-0 flex items-center justify-center gap-5 opacity-60 transition-opacity group-hover:opacity-35">
+      <div className="absolute inset-0 hidden items-center justify-center gap-5 opacity-60 transition-opacity group-hover:opacity-35 sm:flex">
         <div className="w-44 rounded-lg border border-white/10 bg-black/40 p-3 text-center">
           <div className="mb-2 h-16 rounded bg-gradient-to-b from-[#3b2d5c] to-[#1d1830]" />
           <p className="text-sm text-white/90">「もう少しだけ、待って」</p>

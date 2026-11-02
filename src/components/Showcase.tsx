@@ -6,6 +6,22 @@ import { Check, Move } from "lucide-react";
 import { ContactLinks, ExperienceList, ProjectActions, SkillsGrid, StatusBadge, Tags } from "@/components/shared";
 import { profile, projects } from "@/content/profile";
 
+const featured = projects.find((p) => p.featured) ?? projects[0];
+const rest = projects.filter((p) => p !== featured);
+
+function Highlights({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-2 text-sm">
+      {items.map((h) => (
+        <li key={h} className="flex gap-2.5 text-text/85">
+          <Check className="mt-0.5 size-4 shrink-0 text-green" />
+          {h}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Nav({ onCanvas }: { onCanvas?: () => void }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-bg/80 backdrop-blur">
@@ -15,7 +31,7 @@ function Nav({ onCanvas }: { onCanvas?: () => void }) {
           srohrer.dev
         </a>
         <div className="ml-auto flex items-center gap-5 text-muted">
-          <a href="#work" className="hover:text-text">Work</a>
+          <a href="#featured" className="hover:text-text">Work</a>
           <a href="#experience" className="hidden hover:text-text sm:inline">Experience</a>
           <a href="#contact" className="hover:text-text">Contact</a>
           {onCanvas && (
@@ -50,34 +66,50 @@ export function Showcase({ onCanvas }: { onCanvas?: () => void }) {
           <ContactLinks className="relative mt-8" />
         </section>
 
-        <section id="work" className="scroll-mt-20 pb-12">
-          <div className="mb-10 flex items-baseline justify-between border-b border-border pb-4">
-            <h2 className="text-sm font-semibold tracking-wider text-faint uppercase">Selected work</h2>
+        <section id="featured" className="scroll-mt-20 pb-24">
+          <div className="mb-8 border-b border-border pb-4">
+            <h2 className="text-sm font-semibold tracking-wider text-accent uppercase">Featured project</h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-4xl font-semibold tracking-tight sm:text-6xl">{featured.name}</h3>
+            <StatusBadge status={featured.status} />
+          </div>
+          <p className="mt-3 text-xl text-accent sm:text-2xl">{featured.oneLiner}</p>
+          <ProjectPreview kind={featured.preview} loomUrl={featured.loomUrl} className="mt-8 w-full" />
+          <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:gap-12">
+            <div>
+              <p className="text-lg leading-relaxed text-text/85">{featured.description}</p>
+              <div className="mt-5">
+                <Tags tags={featured.tags} />
+              </div>
+              <div className="mt-5 empty:hidden">
+                <ProjectActions project={featured} />
+              </div>
+            </div>
+            <Highlights items={featured.highlights} />
+          </div>
+        </section>
+
+        <section id="work" className="scroll-mt-20 border-t border-border pt-12 pb-12">
+          <div className="mb-10 flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold tracking-wider text-faint uppercase">More work</h2>
             <span className="hidden text-xs text-faint sm:inline">previews are live: they animate as you scroll</span>
           </div>
 
           <div className="space-y-24">
-            {projects.map((p, i) => (
+            {rest.map((p, i) => (
               <article key={p.slug} className="grid items-center gap-8 lg:grid-cols-[1.25fr_1fr] lg:gap-12">
                 <div className={clsx("min-w-0", i % 2 === 1 && "lg:order-2")}>
                   <ProjectPreview kind={p.preview} />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs text-faint">{String(i + 1).padStart(2, "0")}</span>
-                    <StatusBadge status={p.status} />
-                  </div>
+                  <StatusBadge status={p.status} />
                   <h3 className="mt-3 text-3xl font-semibold tracking-tight">{p.name}</h3>
                   <p className="mt-1 text-lg text-accent">{p.oneLiner}</p>
                   <p className="mt-4 leading-relaxed text-muted">{p.description}</p>
-                  <ul className="mt-5 space-y-2 text-sm">
-                    {p.highlights.map((h) => (
-                      <li key={h} className="flex gap-2.5 text-text/85">
-                        <Check className="mt-0.5 size-4 shrink-0 text-green" />
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-5">
+                    <Highlights items={p.highlights} />
+                  </div>
                   <div className="mt-5">
                     <Tags tags={p.tags} />
                   </div>
