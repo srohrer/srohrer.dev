@@ -80,10 +80,11 @@ export const projects: Project[] = [
     oneLiner: "See what your agent actually did.",
     description:
       "A live timeline for agent runs: every model call and tool call as a span, with latency, tokens and cost, retries and failures. Scrub, replay, and diff two runs side by side.",
-    status: "building",
+    status: "live",
     tags: ["React", "Streaming", "OpenTelemetry", "Virtualization"],
     preview: "trace",
-    // TODO: url / repo
+    url: "https://tracer.srohrer.dev",
+    repo: "https://github.com/srohrer/tracer",
     highlights: [
       "Waterfall of nested spans, streamed live",
       "Token and cost accounting per step",
