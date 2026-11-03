@@ -38,7 +38,7 @@ function ProjectBody({ p }: { p: (typeof projects)[number] }) {
   );
 }
 
-const FEATURED_SLOT: [number, number] = [640, -440];
+const FEATURED_SLOT: [number, number] = [380, -490];
 const PROJECT_SLOTS: [number, number][] = [
   [-1280, -560],
   [-1280, 220],
@@ -71,7 +71,7 @@ function buildCards(): CardDef[] {
         title: p.name,
         x,
         y,
-        w: p.featured ? 1040 : 640,
+        w: p.featured ? 1200 : 640,
         featured: p.featured,
         badge: <StatusBadge status={p.status} />,
         body: <ProjectBody p={p} />,
@@ -103,7 +103,7 @@ function buildCards(): CardDef[] {
       rotate: -3,
       body: (
         <p className="text-sm leading-relaxed">
-          This page is a canvas. Drag the background to pan, drag cards by their header, and pinch or{" "}
+          This page is a canvas. Drag anywhere to pan, drag cards by their header, and pinch or{" "}
           <span className="font-mono text-xs">⌘/Ctrl + scroll</span> to zoom. Double-click a header to focus it.
         </p>
       ),
@@ -305,11 +305,12 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
   // First fit once every card has been measured.
   useEffect(() => {
     if (!ready && rects.length === cards.length && viewport.w) {
-      // Open on the intro and the featured project side by side.
-      const featured = projects.find((p) => p.featured);
-      const opening = bounds(rects.filter((r) => r.id === "intro" || r.id === featured?.slug));
-      const z = Math.max(fitRect(opening, viewport.w, viewport.h, 64, 1).z, 0.4);
-      store.set({ z, x: viewport.w / 2 - (opening.x + opening.w / 2) * z, y: viewport.h / 2 - (opening.y + opening.h / 2) * z });
+      // Open on the featured project, with the other projects peeking in from the left edge.
+      const hero = rects.find((r) => r.id === projects.find((p) => p.featured)?.slug);
+      const all = bounds(rects);
+      const left = all.x + 320;
+      const opening = hero ? { x: left, y: hero.y, w: hero.x + hero.w - left, h: hero.h } : all;
+      store.set(fitRect(opening, viewport.w, viewport.h, 64, 1));
       requestAnimationFrame(() => setReady(true));
     }
   }, [ready, rects, cards.length, viewport, store]);
@@ -327,7 +328,7 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
   const pinch = useRef<{ dist: number } | null>(null);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    if ((e.target as HTMLElement).closest("[data-card],[data-ui]")) return;
+    if (e.button !== 0 || (e.target as HTMLElement).closest("[data-ui],a,button,iframe")) return;
     store.stop();
     e.currentTarget.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -368,7 +369,9 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
       store.stop();
       const rect = el.getBoundingClientRect();
       if (e.ctrlKey || e.metaKey) {
-        store.zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * 0.01));
+        // A wheel notch reports ~100px and a pinch only a few, so capping slows the wheel but not the pinch.
+        const px = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? e.deltaY * 40 : e.deltaY;
+        store.zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-Math.max(-12, Math.min(12, px)) * 0.01));
       } else {
         const cam = store.get();
         store.set({ ...cam, x: cam.x - e.deltaX, y: cam.y - e.deltaY });
@@ -443,7 +446,8 @@ function Board({ cards, onList }: { cards: CardDef[]; onList: () => void }) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="absolute inset-0 cursor-grab touch-none active:cursor-grabbing"
+        onDragStart={(e) => e.preventDefault()}
+        className="absolute inset-0 cursor-grab touch-none select-none active:cursor-grabbing"
         style={{ backgroundImage: "radial-gradient(circle at 1px 1px, #ffffff14 1px, transparent 0)" }}
       >
         <div
